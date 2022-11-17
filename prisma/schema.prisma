@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id              String            @id
+  name            String            @db.VarChar(255)
+  email           String            @unique @db.VarChar(255)
+  phonenum        String            @unique @db.VarChar(255)
+  reservedrooms   reservedrooms[]
+  checkedoutrooms checkedoutrooms[]
+}
+
+model admin {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  email           String            @unique @db.VarChar(255)
+  phonenum        String            @unique @db.VarChar(255)
+  password        String
+  role            Role              @default(admin)
+  reservedrooms   reservedrooms[]
+  checkedoutrooms checkedoutrooms[]
+  tokenaccess     tokenaccess[]
+}
+
+enum Role {
+  master
+  admin
+}
+
+model rooms {
+  id              Int               @id @default(autoincrement())
+  Description     String
+  Daycost         Float
+  Status          Status
+  Type            type
+  reservedrooms   reservedrooms[]
+  checkedoutrooms checkedoutrooms[]
+}
+
+enum Status {
+  Available
+  Reserved
+  Disabled
+}
+
+enum type {
+  double
+  single
+}
+
+model reservedrooms {
+  id      Int      @id @default(autoincrement())
+  userid  String
+  roomid  Int
+  adminid Int
+  startAt DateTime @default(now())
+  endAt   DateTime
+  userRe  user     @relation(fields: [userid], references: [id])
+  adminRE admin    @relation(fields: [adminid], references: [id])
+  roomRE  rooms    @relation(fields: [roomid], references: [id])
+}
+
+model checkedoutrooms {
+  id       Int      @id @default(autoincrement())
+  feedback String
+  cost     Float
+  userid   String
+  roomid   Int
+  adminid  Int
+  startAt  DateTime
+  endAt    DateTime @default(now())
+  userRe   user     @relation(fields: [userid], references: [id])
+  adminRE  admin    @relation(fields: [adminid], references: [id])
+  roomRE   rooms    @relation(fields: [roomid], references: [id])
+}
+
+model tokenaccess {
+  id        Int      @id @default(autoincrement())
+  adminid   Int
+  expiresAt DateTime
+  adminRE   admin    @relation(fields: [adminid], references: [id])
+}
